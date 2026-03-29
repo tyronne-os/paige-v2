@@ -1,0 +1,12 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "PAIGE Live Preview",
+      "type": "chrome",
+      "request": "launch",
+      "url": "https://aibruh-paige-v5.hf.space",
+      "webRoot": "${workspaceFolder}"
+    }
+  ]
+}

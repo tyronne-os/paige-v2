@@ -1,0 +1,11 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "View PAIGE Live (HF Space)",
+      "type": "shell",
+      "command": "echo 'Opening PAIGE in Simple Browser...'",
+      "presentation": { "reveal": "never" }
+    }
+  ]
+}
