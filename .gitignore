@@ -2,3 +2,4 @@ node_modules/
 .env
 *.log
 avatar.b64
+__pycache__/
