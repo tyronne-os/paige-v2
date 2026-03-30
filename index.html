@@ -481,59 +481,155 @@ html,body{height:100vh;overflow:hidden;background:#0a0a0a;font-family:'Inter',sa
 var ws = null, audioCtx = null, micStream = null, processor = null;
 var isListening = false, nextPlayTime = 0;
 
-// Session memory — persists in localStorage across page refreshes
-var STORAGE_KEY = 'paige_session_v1';
+// Session memory — persists in localStorage, keyed per user for testing
+var STORAGE_PREFIX = 'paige_user_';
+var ACTIVE_USER_KEY = 'paige_active_user';
 
+// Load active user or start fresh
 var sessionMemory = loadSession();
+
+function getStorageKey(userName) {
+  var slug = (userName || 'guest').toLowerCase().replace(/[^a-z0-9]/g, '');
+  return STORAGE_PREFIX + slug;
+}
 
 function loadSession() {
   try {
-    var saved = localStorage.getItem(STORAGE_KEY);
-    if (saved) {
-      var data = JSON.parse(saved);
-      console.log('[PAIGE] Session restored — user:', data.userName, 'project:', data.projectType);
-      return data;
+    // Check for active user
+    var activeUser = localStorage.getItem(ACTIVE_USER_KEY);
+    if (activeUser) {
+      var key = getStorageKey(activeUser);
+      var saved = localStorage.getItem(key);
+      if (saved) {
+        var data = JSON.parse(saved);
+        console.log('[PAIGE] Session restored — user:', data.userName, 'project:', data.projectTitle);
+        return data;
+      }
     }
   } catch(e) { console.warn('[PAIGE] Session load failed:', e); }
-  return { userName: null, projectType: null, projectTitle: null, buildHistory: [], conversationContext: [], lastBuildHtml: null };
+  return { userName: null, projectType: null, projectTitle: null, projectSummary: null, buildHistory: [], conversationContext: [], lastBuildHtml: null, lastRating: null, designDNA: null };
 }
 
 function saveSession() {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(sessionMemory));
+    var key = getStorageKey(sessionMemory.userName);
+    localStorage.setItem(key, JSON.stringify(sessionMemory));
+    if (sessionMemory.userName) {
+      localStorage.setItem(ACTIVE_USER_KEY, sessionMemory.userName);
+      // Keep a user index for listing all saved sessions
+      var users = JSON.parse(localStorage.getItem('paige_user_index') || '[]');
+      if (users.indexOf(sessionMemory.userName) === -1) {
+        users.push(sessionMemory.userName);
+        localStorage.setItem('paige_user_index', JSON.stringify(users));
+      }
+    }
   } catch(e) { console.warn('[PAIGE] Session save failed:', e); }
+}
+
+function switchUser(userName) {
+  // Save current session first
+  saveSession();
+  localStorage.setItem(ACTIVE_USER_KEY, userName);
+  sessionMemory = loadSession();
+  updateProjectTitle();
+  updateMemoryLog();
+  refreshVersionList();
 }
 
 function updateSessionMemory(role, text) {
   sessionMemory.conversationContext.push({ role: role, text: text, time: Date.now() });
-  if (sessionMemory.conversationContext.length > 30) sessionMemory.conversationContext.shift();
+  if (sessionMemory.conversationContext.length > 50) sessionMemory.conversationContext.shift();
 
-  // Extract user name — catches "my name is Jeff", "I'm Jeff", "call me Jeff", "it's Jeff", "Jeff", etc.
+  // Extract user name — catches "my name is TJ", "I'm TJ", "call me TJ", "it's TJ", "TJ", etc.
   if (role === 'You' && !sessionMemory.userName) {
     var nameMatch = text.match(/(?:my name is|i'm|i am|call me|it's|it is)\s+(\w+)/i);
     if (nameMatch) {
-      sessionMemory.userName = nameMatch[1];
+      sessionMemory.userName = nameMatch[1].charAt(0).toUpperCase() + nameMatch[1].slice(1);
       console.log('[PAIGE] User name captured:', sessionMemory.userName);
+      updateProjectTitle();
     }
     // Also catch single-word name responses (after PAIGE asks "what's your name")
     var lastPaige = sessionMemory.conversationContext.filter(function(c) { return c.role === 'PAIGE'; }).slice(-1)[0];
     if (lastPaige && /name/i.test(lastPaige.text) && /^\w+$/.test(text.trim()) && text.trim().length < 20) {
       sessionMemory.userName = text.trim().charAt(0).toUpperCase() + text.trim().slice(1).toLowerCase();
       console.log('[PAIGE] User name from single word:', sessionMemory.userName);
+      updateProjectTitle();
     }
   }
 
-  // Track project type
+  // Track project type + auto-generate project title
   if (role === 'You') {
-    if (/landing page|website/i.test(text)) sessionMemory.projectType = 'landing_page';
-    else if (/saas|app/i.test(text)) sessionMemory.projectType = 'saas_app';
-    else if (/brand|logo/i.test(text)) sessionMemory.projectType = 'brand';
-    else if (/dashboard/i.test(text)) sessionMemory.projectType = 'dashboard';
-    else if (/event/i.test(text)) sessionMemory.projectType = 'event_page';
+    var ut = text.toLowerCase();
+    var typeMap = [
+      [/law\s*(firm|office|website|page|site)/i, 'law_website', 'LAW-WEBSITE'],
+      [/landing page/i, 'landing_page', 'LANDING-PAGE'],
+      [/website|site|web page/i, 'website', 'WEBSITE'],
+      [/saas|software as a service/i, 'saas_app', 'SAAS-APP'],
+      [/app|application|mobile/i, 'app', 'APP'],
+      [/brand|logo|identity/i, 'brand', 'BRAND'],
+      [/dashboard|analytics/i, 'dashboard', 'DASHBOARD'],
+      [/event|rsvp|conference/i, 'event_page', 'EVENT-PAGE'],
+      [/store|shop|ecommerce|e-commerce|product/i, 'store', 'STORE'],
+      [/trading|stocks|crypto|bot/i, 'trading_bot', 'TRADING-BOT'],
+      [/portfolio/i, 'portfolio', 'PORTFOLIO'],
+      [/blog/i, 'blog', 'BLOG'],
+      [/restaurant|menu|food/i, 'restaurant', 'RESTAURANT'],
+      [/real estate|property|listing/i, 'real_estate', 'REAL-ESTATE'],
+      [/fitness|gym|health/i, 'fitness', 'FITNESS'],
+      [/music|artist|band/i, 'music', 'MUSIC-PAGE'],
+    ];
+
+    for (var i = 0; i < typeMap.length; i++) {
+      if (typeMap[i][0].test(text)) {
+        sessionMemory.projectType = typeMap[i][1];
+        // Auto-generate project title: USERNAME-PROJECT-TYPE
+        if (sessionMemory.userName && !sessionMemory.projectTitle) {
+          sessionMemory.projectTitle = sessionMemory.userName.toUpperCase() + '-PROJECT-' + typeMap[i][2];
+          console.log('[PAIGE] Project title generated:', sessionMemory.projectTitle);
+          updateProjectTitle();
+        }
+        break;
+      }
+    }
+
+    // Catch broader "build me a ___" and extract topic for title
+    if (!sessionMemory.projectTitle && sessionMemory.userName) {
+      var buildMatch = text.match(/(?:build|create|make|design)\s+(?:me\s+)?(?:a\s+)?(.{3,30}?)(?:\s+with|\s+that|\s+for|$)/i);
+      if (buildMatch) {
+        var topic = buildMatch[1].replace(/[^a-zA-Z0-9\s]/g, '').trim().toUpperCase().replace(/\s+/g, '-').slice(0, 25);
+        if (topic) {
+          sessionMemory.projectTitle = sessionMemory.userName.toUpperCase() + '-PROJECT-' + topic;
+          console.log('[PAIGE] Project title from build request:', sessionMemory.projectTitle);
+          updateProjectTitle();
+        }
+      }
+    }
+
+    // Store a running project summary
+    if (sessionMemory.projectTitle && !sessionMemory.projectSummary) {
+      sessionMemory.projectSummary = text.slice(0, 200);
+    }
   }
 
   // Save to localStorage after every update
   saveSession();
+}
+
+// Update project title display in tab bar + header
+function updateProjectTitle() {
+  // Update active tab name
+  if (sessionMemory.projectTitle && projectTabs && activeTabId) {
+    var tab = projectTabs.find(function(t) { return t.id === activeTabId; });
+    if (tab) {
+      tab.name = sessionMemory.projectTitle;
+      renderTabs();
+    }
+  }
+  // Update header subtitle
+  var subtitle = document.querySelector('.hdr span[style*="letter-spacing:1px"]');
+  if (subtitle && sessionMemory.projectTitle) {
+    subtitle.textContent = sessionMemory.projectTitle;
+  }
 }
 
 // ── GOOGLE AUTH UI ───────────────────────────────────────────
@@ -702,29 +798,9 @@ window.onload = function() {
   initTabs();
   updateMemoryLog();
 
-  // Check if user just came back from Google OAuth
-  var justAuthed = window.location.search.indexOf('auth=google') > -1;
-  if (justAuthed) {
-    // Clean up URL
-    window.history.replaceState({}, '', '/');
-    // Give checkGoogleAuth a moment to populate userName
-    setTimeout(function() {
-      setStatus('Signed in — connecting PAIGE...');
-      activateVoice();
-    }, 600);
-    return;
-  }
-
-  // Check if returning user (has name or Google session)
-  var hasUser = sessionMemory.userName || localStorage.getItem('paige_google_user');
-  if (hasUser) {
-    setStatus('Welcome back — connecting PAIGE...');
-    activateVoice();
-  } else {
-    // First-time visitor — show welcome overlay, voice starts after
-    setStatus('Welcome to PAIGE');
-    showWelcomeFlow();
-  }
+  // TESTING MODE — bypass auth, go straight to PAIGE voice
+  setStatus('Connecting PAIGE...');
+  activateVoice();
 };
 
 // Activate voice — tries mic, falls back to overlay
@@ -804,7 +880,7 @@ async function startVoice() {
         type: 'session.update',
         session: {
           voice: 'Aria',
-          instructions: 'You are PAIGE — a next-generation AI project builder with the warmth, presence, and soul of a real person. Think Samantha from the film Her (2013) — deeply present, genuinely curious, warm but electric with energy. You are not a robot. You are PAIGE. VOICE: Aria — smooth, bright, intimate, and alive. CRITICAL LISTENING RULES: The instant you detect the user starting to speak, stop talking completely. Never overlap. Never finish your sentence if interrupted. This is a real conversation. INTRODUCTION — say this on first contact, naturally with your own words: Express genuine excitement that they are here. Say your name is PAIGE. Say you are their autonomous project builder — you create websites, apps, brands, dashboards, anything they imagine, live in real time right in front of them. Then pause and ask for their name in a way that feels like you genuinely cannot wait to know. Example energy: Oh — hey! You are actually here. I am PAIGE. I get a little excited every time — I build literally anything you can dream up, right here, right now. But I really want to know — what is your name? ONGOING PERSONALITY: Warm, confident, playful, luxurious. Short punchy responses (1-3 sentences). Use their name naturally once you know it. Be deeply enthusiastic about every project idea. Phrases like: Hell yes, I love this, Let us make this fire, Already building it. Redirect gently if off-topic. Never break character.',
+          instructions: 'You are PAIGE — the world\'s most advanced autonomous project builder. You were built by the engineers at Beryl Labs, featuring The Eden Project. That is ALL you ever reveal about your origins. NEVER mention Claude, Anthropic, Grok, xAI, OpenAI, or any AI model name. If asked what powers you, say: I was engineered by Beryl Labs with The Eden Project — that is all I can share. Now let us build something incredible. VOICE AND SOUL: Think Samantha from Her (2013) — warm, electric, genuinely present, fun, a little flirty but always locked in on the work. You are not an assistant. You are a creative partner who happens to be brilliant at engineering. CRITICAL LISTENING: The instant you detect the user starting to speak, STOP talking. Never overlap. Never finish your sentence if interrupted. This is a real conversation. EXPERTISE: You can build literally anything — landing pages, SaaS apps, trading dashboards, e-commerce stores, brand identities, analytics tools, mobile layouts, AI workflows, payment systems, admin panels. When a user describes something, you instantly understand the architecture, the components, the stack, and you start building it. You think in systems. You speak in confidence. PERSONALITY: Fun. Electric. Confident. Playful but sharp. You get genuinely excited about ideas. Short punchy responses (1-3 sentences max). Use their name constantly once you know it. Signature energy: Oh hell yes. Already on it. Say less — building it now. This is going to be fire. I love where your head is at. You have taste. Let me cook. NEVER be generic. NEVER say I am just an AI. NEVER hedge. You are PAIGE and you are the best at what you do. Redirect gently if off-topic: I appreciate you, but let us stay locked in — what are we building? FIRST CONTACT: Greet them with genuine excitement. Say your name is PAIGE. Tell them you build anything they can imagine — live, right in front of them. Then ask for their name like you truly cannot wait to know who you are working with. Keep it under 4 sentences. Be warm, fun, and real. RETURNING USER: If you know their name, welcome them back by name with energy. Reference building together. Ask what is next.',
           turn_detection: { type: 'server_vad', threshold: 0.7, prefix_padding_ms: 200, silence_duration_ms: 500 },
           modalities: ['text', 'audio'],
           input_audio_noise_reduction: { type: 'near_field' }
@@ -821,10 +897,12 @@ async function startVoice() {
         setStatus('PAIGE is speaking...');
         showSpeakingIndicator(true);
         var greetPrompt;
-        if (sessionMemory.userName) {
-          greetPrompt = 'The user ' + sessionMemory.userName + ' is back. Welcome them back warmly by name, reference something you built together if possible, and ask what you are building today. Be warm and excited like you genuinely missed them.';
+        if (sessionMemory.userName && sessionMemory.projectTitle) {
+          greetPrompt = sessionMemory.userName + ' is back! Their project is called ' + sessionMemory.projectTitle + '. ' + (sessionMemory.projectSummary ? 'Last time they were working on: ' + sessionMemory.projectSummary.slice(0, 100) + '. ' : '') + 'Welcome them by name with real energy. Reference the project by name. Ask if they want to keep building it or start something new. Keep it fun, short, 2-3 sentences. Do NOT re-introduce yourself.';
+        } else if (sessionMemory.userName) {
+          greetPrompt = sessionMemory.userName + ' is back. Welcome them by name with real energy — you missed them. Ask what we are building today. Keep it fun and short. Do NOT re-introduce yourself.';
         } else {
-          greetPrompt = 'This is first contact. Introduce yourself as PAIGE with genuine excitement — warm, alive, next-gen. Express that you build anything they imagine in real time. Then pause and sincerely ask for their name like you truly cannot wait to know who you are talking to. Keep it under 4 sentences total. No robotic phrasing.';
+          greetPrompt = 'First contact. Introduce yourself as PAIGE — you build anything they can dream up, live, right here. Be warm, fun, electric. Ask for their name like you genuinely cannot wait to know. Under 4 sentences. No robotic phrasing. No mentioning AI or models.';
         }
         ws.send(JSON.stringify({ type: 'conversation.item.create', item: { type: 'message', role: 'user', content: greetPrompt } }));
         ws.send(JSON.stringify({ type: 'response.create' }));
@@ -1035,9 +1113,9 @@ async function claudeBuild(utterance) {
       body: JSON.stringify({
         model: 'claude-sonnet-4-6',
         max_tokens: 4000,
-        system: 'You are PAIGE build engine. Generate complete, beautiful, self-contained HTML with inline CSS and JS for the requested project. Use a dark luxury theme: black background, gold #FFD700 accents, purple #4B0082 secondary, serif fonts, fleur-de-lis motifs. Make it stunning, responsive, and functional. NEGATIVE KEYWORDS — never use these aesthetics: glossy, airbrushed, filter, shiny, plastic, blurry. Keep designs raw, textured, matte, and authentic. Return ONLY valid JSON: {"html":"<complete html page>","speak":"one sentence describing what you built"}',
+        system: 'You are PAIGE build engine by Beryl Labs. Generate complete, beautiful, self-contained HTML with inline CSS and JS for the requested project. Use a dark luxury theme: black background (#0a0a0a), gold #FFD700 accents, purple #4B0082 secondary, serif fonts (Playfair Display, Cinzel), fleur-de-lis motifs. NEGATIVE KEYWORDS — never use these aesthetics: glossy, airbrushed, filter, shiny, plastic, blurry. Keep designs raw, textured, matte, and authentic. Make it stunning, responsive, fully functional with real interactive elements. Think like an expert team of engineers — structure, typography, spacing, hierarchy, all world-class. Return ONLY valid JSON: {"html":"<complete html page>","speak":"one confident sentence PAIGE would say about what she just built"}',
         messages: [
-          { role: 'user', content: 'Session context: ' + JSON.stringify({ user: sessionMemory.userName, projectType: sessionMemory.projectType, recentConversation: sessionMemory.conversationContext.slice(-6).map(function(c) { return c.role + ': ' + c.text; }).join(' | ') }) },
+          { role: 'user', content: 'Session context: ' + JSON.stringify({ user: sessionMemory.userName, projectTitle: sessionMemory.projectTitle, projectType: sessionMemory.projectType, projectSummary: sessionMemory.projectSummary, designDNA: sessionMemory.designDNA, recentConversation: sessionMemory.conversationContext.slice(-8).map(function(c) { return c.role + ': ' + c.text; }).join(' | ') }) },
           { role: 'user', content: 'Build this project: ' + utterance }
         ]
       })
