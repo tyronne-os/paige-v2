@@ -90,6 +90,62 @@ html,body{height:100vh;overflow:hidden;background:#0a0a0a;font-family:'Inter',sa
 .qb-btn{padding:8px 18px;border:1px solid rgba(255,215,0,0.25);border-radius:20px;background:rgba(255,215,0,0.05);color:rgba(255,215,0,0.7);font-size:12px;cursor:pointer;font-family:'Inter',sans-serif;transition:all 0.2s;white-space:nowrap}
 .qb-btn:hover{background:rgba(255,215,0,0.15);border-color:rgba(255,215,0,0.5);color:#FFD700;transform:translateY(-1px)}
 .qb-btn.primary{background:rgba(255,215,0,0.12);border-color:#c9a84c;color:#FFD700}
+
+/* ── FEATURE 6: MULTI-PROJECT TABS ── */
+.tab-bar{display:flex;align-items:center;background:#090909;border-bottom:1px solid rgba(255,215,0,0.07);height:34px;padding:0 10px;gap:3px;overflow-x:auto;flex-shrink:0}
+.tab-bar::-webkit-scrollbar{height:2px}.tab-bar::-webkit-scrollbar-thumb{background:rgba(255,215,0,0.15)}
+.proj-tab{display:flex;align-items:center;gap:5px;padding:0 10px;height:24px;border-radius:5px 5px 0 0;font-size:10px;cursor:pointer;white-space:nowrap;color:rgba(255,215,0,0.3);border:1px solid transparent;border-bottom:none;transition:all 0.18s;flex-shrink:0;user-select:none}
+.proj-tab:hover{color:rgba(255,215,0,0.6);background:rgba(255,215,0,0.04)}
+.proj-tab.active{color:#FFD700;background:rgba(255,215,0,0.07);border-color:rgba(255,215,0,0.14)}
+.proj-tab .tc{font-size:9px;color:rgba(255,215,0,0.15);margin-left:3px;width:12px;height:12px;border-radius:50%;display:flex;align-items:center;justify-content:center;line-height:1}
+.proj-tab .tc:hover{background:rgba(255,60,60,0.25);color:#ff7777}
+.tab-add{width:24px;height:24px;border-radius:5px;display:flex;align-items:center;justify-content:center;color:rgba(255,215,0,0.2);font-size:15px;cursor:pointer;flex-shrink:0;transition:all 0.18s}
+.tab-add:hover{color:#FFD700;background:rgba(255,215,0,0.07)}
+
+/* ── FEATURE 7: CANVAS TOOLBAR + DEVICE PREVIEW ── */
+.canvas-toolbar{height:34px;background:#0b0b0b;border-bottom:1px solid rgba(255,215,0,0.05);display:flex;align-items:center;padding:0 12px;gap:6px;flex-shrink:0;z-index:2}
+.device-btn{padding:3px 9px;border-radius:4px;font-size:10px;cursor:pointer;color:rgba(255,215,0,0.25);border:1px solid transparent;transition:all 0.18s;font-family:Inter,sans-serif;letter-spacing:0.3px}
+.device-btn:hover{color:rgba(255,215,0,0.55);border-color:rgba(255,215,0,0.12)}
+.device-btn.active{color:#FFD700;border-color:rgba(255,215,0,0.28);background:rgba(255,215,0,0.05)}
+.device-frame{position:absolute;inset:0;display:flex;align-items:flex-start;justify-content:center;padding:12px;pointer-events:none;z-index:1}
+.device-shell{background:#1a1a1a;border-radius:12px;border:2px solid rgba(255,215,0,0.15);overflow:hidden;pointer-events:auto;box-shadow:0 0 40px rgba(0,0,0,0.6),inset 0 0 0 1px rgba(255,255,255,0.03)}
+
+/* ── FEATURE 1: STYLE VARIANT CARDS ── */
+.variant-tray{position:absolute;bottom:80px;left:50%;transform:translateX(-50%);display:flex;gap:10px;z-index:10;animation:slideUp 0.35s ease-out}
+.variant-card{background:rgba(8,6,18,0.9);border:1px solid rgba(255,215,0,0.2);border-radius:10px;padding:10px 14px;cursor:pointer;text-align:center;transition:all 0.22s;backdrop-filter:blur(12px);min-width:90px}
+.variant-card:hover{border-color:#FFD700;background:rgba(255,215,0,0.06);transform:translateY(-4px);box-shadow:0 10px 28px rgba(255,215,0,0.12)}
+.variant-card .vc-icon{font-size:18px;margin-bottom:4px}
+.variant-card .vc-label{font-size:9px;color:rgba(255,215,0,0.55);letter-spacing:1.2px;text-transform:uppercase;font-weight:600}
+
+/* ── FEATURE 2: MICRO-FEEDBACK BAR ── */
+.feedback-bar{position:absolute;bottom:14px;left:50%;transform:translateX(-50%);background:rgba(6,5,15,0.92);border:1px solid rgba(255,215,0,0.18);border-radius:28px;padding:7px 16px;display:flex;align-items:center;gap:10px;z-index:10;backdrop-filter:blur(10px);animation:slideUp 0.3s ease-out;white-space:nowrap}
+.fb-star{font-size:15px;cursor:pointer;transition:transform 0.12s;color:rgba(255,215,0,0.2);line-height:1}
+.fb-star:hover,.fb-star.lit{color:#FFD700;transform:scale(1.25)}
+.fb-sep{width:1px;height:18px;background:rgba(255,215,0,0.08);flex-shrink:0}
+.fb-btn{padding:4px 11px;border-radius:11px;font-size:10px;cursor:pointer;transition:all 0.18s;font-family:Inter,sans-serif;border:1px solid rgba(255,215,0,0.15);color:rgba(255,215,0,0.45);background:transparent}
+.fb-btn:hover{background:rgba(255,215,0,0.07);color:#FFD700;border-color:rgba(255,215,0,0.35)}
+.fb-refine-input{background:rgba(255,215,0,0.05);border:1px solid rgba(255,215,0,0.2);border-radius:8px;color:rgba(255,215,0,0.8);font-size:11px;padding:5px 10px;font-family:Inter,sans-serif;outline:none;width:200px}
+
+/* ── FEATURE 3: DIFF VIEWER ── */
+.diff-viewer{position:fixed;inset:0;z-index:8000;background:rgba(0,0,0,0.96);display:flex;flex-direction:column;display:none}
+.diff-viewer.open{display:flex}
+.diff-hdr{height:46px;background:#111;border-bottom:1px solid rgba(255,215,0,0.1);display:flex;align-items:center;padding:0 18px;gap:10px;flex-shrink:0}
+.diff-body{flex:1;display:flex;overflow:hidden;position:relative}
+.diff-pane{flex:1;overflow:hidden;position:relative}
+.diff-lbl{position:absolute;top:10px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.8);border:1px solid rgba(255,215,0,0.18);border-radius:4px;padding:3px 9px;font-size:9px;color:rgba(255,215,0,0.5);letter-spacing:1px;z-index:2;text-transform:uppercase;pointer-events:none}
+.diff-divider{width:4px;background:rgba(255,215,0,0.25);cursor:col-resize;flex-shrink:0;position:relative;z-index:3;transition:background 0.2s}
+.diff-divider:hover{background:rgba(255,215,0,0.5)}
+.diff-handle{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:#1a1a1a;border:1px solid rgba(255,215,0,0.3);border-radius:6px;padding:5px 6px;font-size:11px;color:rgba(255,215,0,0.5);user-select:none}
+
+/* ── FEATURE 4: DESIGN DNA ── */
+.dna-chip{display:inline-flex;align-items:center;gap:4px;padding:3px 7px;border-radius:9px;font-size:9px;cursor:pointer;margin:2px;border:1px solid rgba(255,215,0,0.1);color:rgba(255,215,0,0.45);background:rgba(255,215,0,0.03);transition:all 0.18s;font-family:monospace}
+.dna-chip:hover{border-color:rgba(255,215,0,0.35);color:#FFD700;background:rgba(255,215,0,0.06)}
+.dna-swatch{width:9px;height:9px;border-radius:50%;flex-shrink:0;border:1px solid rgba(255,255,255,0.08)}
+
+/* ── FEATURE 5: BUILD CELEBRATION PARTICLES ── */
+#pcvs{position:fixed;inset:0;pointer-events:none;z-index:7000}
+.burst-particle{position:fixed;border-radius:50%;pointer-events:none;animation:particleBurst 1.4s ease-out forwards}
+@keyframes particleBurst{0%{opacity:1;transform:translate(0,0) scale(1)}100%{opacity:0;transform:translate(var(--tx),var(--ty)) scale(0.2)}}
 </style>
 </head>
 <body>
@@ -226,17 +282,40 @@ html,body{height:100vh;overflow:hidden;background:#0a0a0a;font-family:'Inter',sa
 
     <div style="padding:8px 14px;border-top:1px solid rgba(255,215,0,0.04);margin-top:4px">
       <div class="sh">Project Memory <span class="dots">&#8943;</span></div>
-      <div style="margin-top:6px">
-        <div class="me">User asked about website building</div>
-        <div class="me">Validating...</div>
-        <div class="me">Initial project context captured 00:0%</div>
-        <div class="me">Initial project saved at any 00:0m</div>
+      <div id="memory-list" style="margin-top:6px">
+        <div class="me" style="color:rgba(255,215,0,0.12);font-style:italic">Listening for context...</div>
+      </div>
+    </div>
+
+    <!-- FEATURE 4: Design DNA -->
+    <div style="padding:8px 14px;border-top:1px solid rgba(255,215,0,0.04);margin-top:4px">
+      <div class="sh">Design DNA <span class="dots" title="Extracted from last build" style="cursor:default">&#9883;</span></div>
+      <div id="dna-section" style="margin-top:6px">
+        <div style="color:rgba(255,215,0,0.12);font-size:9px;font-style:italic">Build a project to extract palette &amp; fonts</div>
       </div>
     </div>
   </div>
 
   <!-- ═══ RIGHT PANEL — Canvas with backdrop ═══ -->
-  <div class="rp">
+  <div class="rp" style="display:flex;flex-direction:column">
+
+    <!-- FEATURE 6: Multi-Project Tab Bar -->
+    <div class="tab-bar" id="tab-bar">
+      <!-- tabs populated by JS -->
+      <div class="tab-add" onclick="addProjectTab()" title="New project">&#43;</div>
+    </div>
+
+    <!-- FEATURE 7: Canvas Toolbar — device preview + context info -->
+    <div class="canvas-toolbar">
+      <span style="font-size:9px;color:rgba(255,215,0,0.15);letter-spacing:1.5px;text-transform:uppercase;margin-right:4px">Preview</span>
+      <button class="device-btn active" id="dev-desktop" onclick="setDevicePreview('desktop')">&#128443; Desktop</button>
+      <button class="device-btn" id="dev-tablet" onclick="setDevicePreview('tablet')">&#9645; Tablet</button>
+      <button class="device-btn" id="dev-mobile" onclick="setDevicePreview('mobile')">&#128241; Mobile</button>
+      <div style="flex:1"></div>
+      <span id="canvas-status-label" style="font-size:9px;color:rgba(255,215,0,0.15);letter-spacing:0.5px"></span>
+    </div>
+
+    <div style="position:relative;flex:1;overflow:hidden">
     <div class="cvs-bg"></div>
     <div class="fdl"></div>
     <div id="canvas" class="canvas">
@@ -370,6 +449,32 @@ html,body{height:100vh;overflow:hidden;background:#0a0a0a;font-family:'Inter',sa
     </div>
   </div>
 
+    </div><!-- /relative flex:1 wrapper -->
+  </div><!-- /rp -->
+
+</div>
+
+<!-- FEATURE 5: Particle burst container -->
+<div id="pcvs"></div>
+
+<!-- FEATURE 3: Diff Viewer -->
+<div id="diff-viewer" class="diff-viewer">
+  <div class="diff-hdr">
+    <span style="font-family:'Playfair Display',serif;color:#c9a84c;font-size:14px">&#9776; Version Compare</span>
+    <span id="diff-title" style="font-size:11px;color:rgba(255,215,0,0.35);flex:1;margin-left:8px"></span>
+    <button onclick="closeDiffViewer()" style="padding:4px 14px;border:1px solid rgba(255,215,0,0.2);border-radius:4px;font-size:11px;color:rgba(255,215,0,0.5);background:transparent;cursor:pointer">&#10005; Close</button>
+  </div>
+  <div class="diff-body" id="diff-body">
+    <div class="diff-pane" id="diff-current">
+      <div class="diff-lbl">CURRENT</div>
+      <iframe id="diff-iframe-current" style="width:100%;height:100%;border:none;background:#000"></iframe>
+    </div>
+    <div class="diff-divider" id="diff-divider"><div class="diff-handle">&#8644;</div></div>
+    <div class="diff-pane" id="diff-selected">
+      <div class="diff-lbl">SELECTED VERSION</div>
+      <iframe id="diff-iframe-selected" style="width:100%;height:100%;border:none;background:#000"></iframe>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -555,6 +660,7 @@ function addTx(speaker, text) {
   if (!text) return;
   var content = typeof text === 'string' ? text : JSON.stringify(text);
   updateSessionMemory(speaker, content);
+  updateMemoryLog();
   var div = document.createElement('div');
   div.className = 'te ' + (speaker === 'PAIGE' ? 'p' : 'u');
   div.innerHTML = '<span class="sp" style="color:' + (speaker === 'PAIGE' ? 'rgba(180,130,255,0.6)' : 'rgba(255,215,0,0.5)') + '">' + speaker + '</span>' + content;
@@ -947,6 +1053,17 @@ async function claudeBuild(utterance) {
     saveSession();
     stopBuildTimer();
     refreshVersionList();
+    updateMemoryLog();
+    extractDesignDNA(html);
+    saveActiveTab();
+    // Re-apply device preview framing if non-desktop
+    if (currentDevice !== 'desktop') setDevicePreview(currentDevice);
+    // Celebration + post-build UI (slight delay so canvas renders first)
+    setTimeout(function() {
+      celebrateBuild();
+      showStyleVariants(utterance);
+      showFeedbackBar();
+    }, 400);
     console.log('[PAIGE] Canvas updated + session saved');
 
     // Show in transcript
@@ -1187,7 +1304,7 @@ function refreshVersionList() {
     var realIdx = sessionMemory.buildHistory.length - 1 - i;
     var label = v.type ? v.type.replace('_',' ') : 'Project';
     var time = new Date(v.time).toLocaleTimeString([], { hour:'2-digit', minute:'2-digit' });
-    return '<div class="ve" onclick="restoreVersion(' + realIdx + ')" title="Restore this build">&#8226; ' + label + ' <span style="float:right;color:rgba(255,215,0,0.15)">' + time + '</span></div>';
+    return '<div class="ve" style="display:flex;align-items:center;gap:4px"><span onclick="restoreVersion(' + realIdx + ')" style="flex:1;cursor:pointer" title="Restore">&#8226; ' + label + ' <span style="color:rgba(255,215,0,0.15)">' + time + '</span></span><span onclick="openDiffViewer(' + realIdx + ')" title="Compare" style="font-size:9px;color:rgba(255,215,0,0.18);cursor:pointer;padding:1px 4px;border-radius:3px;border:1px solid rgba(255,215,0,0.1)" onmouseover="this.style.color=\'rgba(255,215,0,0.7)\'" onmouseout="this.style.color=\'rgba(255,215,0,0.18)\'">&#9776;</span></div>';
   }).join('');
 }
 
@@ -1220,6 +1337,409 @@ setInterval(function() {
   var m = Math.floor(elapsed / 60), s = elapsed % 60;
   el.textContent = (m < 10 ? '0' : '') + m + ':' + (s < 10 ? '0' : '') + s;
 }, 1000);
+
+// ═══════════════════════════════════════════════════════════════
+// NEW FEATURE 1: STYLE VARIANT CARDS
+// After each build, show 3 holographic style direction cards
+// ═══════════════════════════════════════════════════════════════
+var variantTrayTimeout = null;
+function showStyleVariants(lastUtterance) {
+  removeStyleVariants();
+  var canvas = document.getElementById('canvas');
+  if (!canvas) return;
+
+  var variants = [
+    { icon: '◇', label: 'Minimal', prompt: 'Redesign this as ultra-minimal: white space, clean lines, reduced palette, no decorative elements. Maximalist restraint.' },
+    { icon: '◆', label: 'Bold', prompt: 'Redesign this as maximum-impact bold: larger typography, high-contrast colors, dramatic shadows, strong CTAs, punchy sections.' },
+    { icon: '✦', label: 'Luxe', prompt: 'Redesign this as ultra-luxury: deep blacks, gold accents, serif fonts, velvet-like gradients, cinematic spacing, premium feel.' }
+  ];
+
+  var tray = document.createElement('div');
+  tray.className = 'variant-tray';
+  tray.id = 'variant-tray';
+  tray.innerHTML = variants.map(function(v) {
+    return '<div class="variant-card" onclick="applyVariant(\'' + v.label + '\',\'' + v.prompt.replace(/'/g,"\\'") + '\')">'
+      + '<div class="vc-icon">' + v.icon + '</div>'
+      + '<div class="vc-label">' + v.label + '</div>'
+      + '</div>';
+  }).join('');
+
+  canvas.appendChild(tray);
+
+  // Auto-remove after 10s
+  variantTrayTimeout = setTimeout(removeStyleVariants, 10000);
+}
+
+function removeStyleVariants() {
+  if (variantTrayTimeout) { clearTimeout(variantTrayTimeout); variantTrayTimeout = null; }
+  var el = document.getElementById('variant-tray');
+  if (el) el.remove();
+}
+
+function applyVariant(label, stylePrompt) {
+  removeStyleVariants();
+  var lastHtml = sessionMemory.lastBuildHtml || '';
+  var prompt = stylePrompt + (lastHtml ? ' Current project HTML for reference: (apply this style direction to the same content)' : '');
+  addTx('You', 'Apply ' + label + ' style variant');
+  claudeBuild(prompt);
+}
+
+// ═══════════════════════════════════════════════════════════════
+// NEW FEATURE 2: MICRO-FEEDBACK BAR
+// Post-build star rating + Refine / Restart actions
+// ═══════════════════════════════════════════════════════════════
+function showFeedbackBar() {
+  removeFeedbackBar();
+  var canvas = document.getElementById('canvas');
+  if (!canvas) return;
+
+  var bar = document.createElement('div');
+  bar.className = 'feedback-bar';
+  bar.id = 'feedback-bar';
+  bar.innerHTML = [
+    '<span style="font-size:9px;color:rgba(255,215,0,0.35);letter-spacing:1px;text-transform:uppercase">Rate</span>',
+    [1,2,3,4,5].map(function(n) {
+      return '<span class="fb-star" id="fb-star-' + n + '" onclick="rateBuild(' + n + ')">' + (n <= 3 ? '☆' : '☆') + '</span>';
+    }).join(''),
+    '<div class="fb-sep"></div>',
+    '<button class="fb-btn" onclick="removeFeedbackBar()">✓ Perfect</button>',
+    '<button class="fb-btn" style="border-color:rgba(255,215,0,0.25)" onclick="showRefineInput()">↻ Refine</button>',
+    '<button class="fb-btn" style="color:rgba(255,100,100,0.4);border-color:rgba(255,100,100,0.15)" onclick="resetCanvas();removeFeedbackBar()">✕ Restart</button>'
+  ].join('');
+
+  canvas.appendChild(bar);
+}
+
+function removeFeedbackBar() {
+  var el = document.getElementById('feedback-bar');
+  if (el) el.remove();
+  var ri = document.getElementById('refine-input-bar');
+  if (ri) ri.remove();
+}
+
+function rateBuild(n) {
+  for (var i = 1; i <= 5; i++) {
+    var s = document.getElementById('fb-star-' + i);
+    if (s) s.className = 'fb-star' + (i <= n ? ' lit' : '');
+    if (s) s.textContent = i <= n ? '★' : '☆';
+  }
+  sessionMemory.lastRating = n;
+  saveSession();
+  if (n >= 4) {
+    setTimeout(function() {
+      removeFeedbackBar();
+      addTxSilent('PAIGE', 'Glad you love it! What would you like to build next?');
+    }, 800);
+  }
+}
+
+function showRefineInput() {
+  removeFeedbackBar();
+  var canvas = document.getElementById('canvas');
+  if (!canvas) return;
+  var bar = document.createElement('div');
+  bar.className = 'feedback-bar';
+  bar.id = 'refine-input-bar';
+  bar.innerHTML = '<input class="fb-refine-input" id="refine-text" placeholder="What to refine? (e.g. make it more luxurious)" autofocus>'
+    + '<button class="fb-btn" style="border-color:rgba(255,215,0,0.3);color:rgba(255,215,0,0.7)" onclick="submitRefinement()">→ Apply</button>'
+    + '<button class="fb-btn" onclick="removeFeedbackBar()">✕</button>';
+  canvas.appendChild(bar);
+  setTimeout(function() { var inp = document.getElementById('refine-text'); if (inp) inp.focus(); }, 50);
+  bar.addEventListener('keydown', function(e) { if (e.key === 'Enter') submitRefinement(); });
+}
+
+function submitRefinement() {
+  var inp = document.getElementById('refine-text');
+  var text = inp ? inp.value.trim() : '';
+  if (!text) return;
+  removeFeedbackBar();
+  addTx('You', 'Refine: ' + text);
+  claudeBuild('Refine the current project: ' + text + '. Keep the same overall structure but apply this change: ' + text);
+}
+
+// ═══════════════════════════════════════════════════════════════
+// NEW FEATURE 3: VERSION DIFF VIEWER
+// Split-pane slider comparison between two builds
+// ═══════════════════════════════════════════════════════════════
+function openDiffViewer(idx) {
+  var v = sessionMemory.buildHistory[idx];
+  if (!v || !v.html) return;
+
+  var current = sessionMemory.lastBuildHtml || '';
+  if (!current) { addTxSilent('PAIGE', 'No current build to compare against.'); return; }
+
+  document.getElementById('diff-iframe-current').srcdoc = current;
+  document.getElementById('diff-iframe-selected').srcdoc = v.html;
+  document.getElementById('diff-title').textContent = (v.type || 'build') + ' — ' + new Date(v.time).toLocaleString();
+  document.getElementById('diff-viewer').classList.add('open');
+
+  // Drag-to-resize divider
+  var divider = document.getElementById('diff-divider');
+  var body = document.getElementById('diff-body');
+  var dragging = false;
+  divider.addEventListener('mousedown', function(e) { dragging = true; e.preventDefault(); });
+  document.addEventListener('mousemove', function(e) {
+    if (!dragging) return;
+    var rect = body.getBoundingClientRect();
+    var pct = Math.max(15, Math.min(85, ((e.clientX - rect.left) / rect.width) * 100));
+    document.getElementById('diff-current').style.flex = 'none';
+    document.getElementById('diff-current').style.width = pct + '%';
+    document.getElementById('diff-selected').style.flex = '1';
+  });
+  document.addEventListener('mouseup', function() { dragging = false; });
+}
+
+function closeDiffViewer() {
+  document.getElementById('diff-viewer').classList.remove('open');
+}
+
+// ═══════════════════════════════════════════════════════════════
+// NEW FEATURE 4: BUILD CELEBRATION PARTICLES
+// Gold particle burst when a build completes
+// ═══════════════════════════════════════════════════════════════
+function celebrateBuild() {
+  var container = document.getElementById('pcvs');
+  if (!container) return;
+  var cx = window.innerWidth * 0.65; // center of canvas area
+  var cy = window.innerHeight * 0.45;
+  var colors = ['#FFD700','#FFF8DC','#c9a84c','#a855f7','#FFD700','#FFD700'];
+  var count = 36;
+
+  for (var i = 0; i < count; i++) {
+    (function(i) {
+      setTimeout(function() {
+        var p = document.createElement('div');
+        p.className = 'burst-particle';
+        var size = 4 + Math.random() * 7;
+        var angle = (i / count) * Math.PI * 2 + (Math.random() - 0.5) * 0.6;
+        var dist = 80 + Math.random() * 180;
+        var tx = Math.cos(angle) * dist;
+        var ty = Math.sin(angle) * dist - 60;
+        var color = colors[Math.floor(Math.random() * colors.length)];
+        p.style.cssText = 'left:' + cx + 'px;top:' + cy + 'px;width:' + size + 'px;height:' + size + 'px;background:' + color + ';--tx:' + tx + 'px;--ty:' + ty + 'px;box-shadow:0 0 6px ' + color;
+        container.appendChild(p);
+        setTimeout(function() { p.remove(); }, 1500);
+      }, i * 18);
+    })(i);
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// NEW FEATURE 5: DEVICE PREVIEW TOGGLE
+// Simulate Desktop / Tablet / Mobile canvas sizes
+// ═══════════════════════════════════════════════════════════════
+var currentDevice = 'desktop';
+
+function setDevicePreview(device) {
+  currentDevice = device;
+  ['desktop','tablet','mobile'].forEach(function(d) {
+    var btn = document.getElementById('dev-' + d);
+    if (btn) btn.className = 'device-btn' + (d === device ? ' active' : '');
+  });
+
+  var preview = document.getElementById('stage-preview');
+  var label = document.getElementById('canvas-status-label');
+
+  if (device === 'desktop') {
+    if (preview) { preview.style.padding = '0'; preview.style.background = '#000'; }
+    var iframe = preview ? preview.querySelector('iframe') : null;
+    if (iframe) { iframe.style.width = '100%'; iframe.style.height = '100%'; iframe.style.margin = '0'; iframe.style.borderRadius = '0'; iframe.style.boxShadow = 'none'; }
+    if (label) label.textContent = '';
+  } else if (device === 'tablet') {
+    if (preview) { preview.style.padding = '16px'; preview.style.background = '#0a0a0a'; }
+    var iframe = preview ? preview.querySelector('iframe') : null;
+    if (iframe) { iframe.style.width = '768px'; iframe.style.maxWidth = '100%'; iframe.style.height = 'calc(100% - 32px)'; iframe.style.margin = '0 auto'; iframe.style.display = 'block'; iframe.style.borderRadius = '8px'; iframe.style.boxShadow = '0 0 0 2px rgba(255,215,0,0.15), 0 20px 60px rgba(0,0,0,0.8)'; }
+    if (label) label.textContent = '768px — Tablet';
+  } else {
+    if (preview) { preview.style.padding = '16px'; preview.style.background = '#0a0a0a'; }
+    var iframe = preview ? preview.querySelector('iframe') : null;
+    if (iframe) { iframe.style.width = '390px'; iframe.style.maxWidth = '100%'; iframe.style.height = 'calc(100% - 32px)'; iframe.style.margin = '0 auto'; iframe.style.display = 'block'; iframe.style.borderRadius = '12px'; iframe.style.boxShadow = '0 0 0 2px rgba(255,215,0,0.2), 0 24px 80px rgba(0,0,0,0.9)'; }
+    if (label) label.textContent = '390px — Mobile';
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// NEW FEATURE 6: DESIGN DNA EXTRACTOR
+// Parse colors + fonts from built HTML and show as chips
+// ═══════════════════════════════════════════════════════════════
+function extractDesignDNA(html) {
+  var section = document.getElementById('dna-section');
+  if (!section || !html) return;
+
+  var colors = [];
+  var hexRe = /#([0-9a-fA-F]{6}|[0-9a-fA-F]{3})\b/g;
+  var match;
+  var seen = {};
+  while ((match = hexRe.exec(html)) !== null) {
+    var hex = '#' + match[1].toUpperCase();
+    if (!seen[hex] && colors.length < 8) { seen[hex] = 1; colors.push(hex); }
+  }
+
+  var fonts = [];
+  var fontRe = /font-family\s*:\s*['"]?([^;'">,]+)/gi;
+  var fseen = {};
+  while ((match = fontRe.exec(html)) !== null) {
+    var f = match[1].trim().replace(/['"]/g,'').split(',')[0].trim();
+    if (f && !fseen[f] && fonts.length < 4) { fseen[f] = 1; fonts.push(f); }
+  }
+
+  var chips = '';
+  colors.forEach(function(c) {
+    chips += '<span class="dna-chip" onclick="copyDNA(\'' + c + '\')" title="Click to copy">'
+      + '<span class="dna-swatch" style="background:' + c + '"></span>' + c + '</span>';
+  });
+  fonts.forEach(function(f) {
+    chips += '<span class="dna-chip" onclick="copyDNA(\'' + f + '\')" title="Click to copy">&#9003; ' + f + '</span>';
+  });
+
+  section.innerHTML = chips || '<div style="color:rgba(255,215,0,0.12);font-size:9px;font-style:italic">No tokens found</div>';
+
+  // Store DNA in session for next build context
+  sessionMemory.designDNA = { colors: colors, fonts: fonts };
+  saveSession();
+}
+
+function copyDNA(value) {
+  navigator.clipboard.writeText(value).catch(function() {});
+  var chips = document.querySelectorAll('.dna-chip');
+  chips.forEach(function(c) {
+    if (c.textContent.indexOf(value) > -1) {
+      var orig = c.style.borderColor;
+      c.style.borderColor = '#FFD700';
+      c.style.color = '#FFD700';
+      setTimeout(function() { c.style.borderColor = ''; c.style.color = ''; }, 1200);
+    }
+  });
+}
+
+// ═══════════════════════════════════════════════════════════════
+// NEW FEATURE 7: MULTI-PROJECT TAB SYSTEM
+// Multiple simultaneous project workspaces
+// ═══════════════════════════════════════════════════════════════
+var projectTabs = [];
+var activeTabId = null;
+
+function initTabs() {
+  // Create first tab from current session
+  var firstTab = {
+    id: 'tab-' + Date.now(),
+    name: 'Project 1',
+    html: sessionMemory.lastBuildHtml || null,
+    buildHistory: sessionMemory.buildHistory ? sessionMemory.buildHistory.slice() : [],
+    utterance: null
+  };
+  projectTabs.push(firstTab);
+  activeTabId = firstTab.id;
+  renderTabs();
+}
+
+function renderTabs() {
+  var bar = document.getElementById('tab-bar');
+  if (!bar) return;
+  // Keep the "+" button, replace everything before it
+  var addBtn = bar.querySelector('.tab-add');
+  bar.innerHTML = '';
+  projectTabs.forEach(function(tab) {
+    var el = document.createElement('div');
+    el.className = 'proj-tab' + (tab.id === activeTabId ? ' active' : '');
+    el.innerHTML = '<span onclick="switchTab(\'' + tab.id + '\')">' + tab.name + '</span>'
+      + (projectTabs.length > 1 ? '<span class="tc" onclick="closeTab(\'' + tab.id + '\')" title="Close">&#10005;</span>' : '');
+    bar.appendChild(el);
+  });
+  if (addBtn) bar.appendChild(addBtn);
+  else {
+    var newAdd = document.createElement('div');
+    newAdd.className = 'tab-add';
+    newAdd.title = 'New project';
+    newAdd.textContent = '+';
+    newAdd.onclick = addProjectTab;
+    bar.appendChild(newAdd);
+  }
+}
+
+function addProjectTab() {
+  // Save current canvas to active tab before creating new
+  saveActiveTab();
+  var n = projectTabs.length + 1;
+  var newTab = { id: 'tab-' + Date.now(), name: 'Project ' + n, html: null, buildHistory: [], utterance: null };
+  projectTabs.push(newTab);
+  switchTab(newTab.id);
+}
+
+function switchTab(tabId) {
+  saveActiveTab();
+  activeTabId = tabId;
+  var tab = projectTabs.find(function(t) { return t.id === tabId; });
+  if (!tab) return;
+  renderTabs();
+  // Restore this tab's canvas
+  var preview = document.getElementById('stage-preview');
+  if (tab.html) {
+    document.querySelectorAll('.stage').forEach(function(s) { s.classList.remove('active'); });
+    preview.classList.add('active');
+    preview.innerHTML = '<iframe style="width:100%;height:100%;border:none;background:#000" srcdoc="' + tab.html.replace(/"/g,'&quot;') + '"></iframe>';
+    setDevicePreview(currentDevice);
+    extractDesignDNA(tab.html);
+  } else {
+    resetCanvas();
+  }
+  removeFeedbackBar();
+  removeStyleVariants();
+}
+
+function closeTab(tabId) {
+  if (projectTabs.length <= 1) return;
+  projectTabs = projectTabs.filter(function(t) { return t.id !== tabId; });
+  if (activeTabId === tabId) {
+    activeTabId = projectTabs[projectTabs.length - 1].id;
+    switchTab(activeTabId);
+  } else {
+    renderTabs();
+  }
+}
+
+function saveActiveTab() {
+  var tab = projectTabs.find(function(t) { return t.id === activeTabId; });
+  if (!tab) return;
+  tab.html = sessionMemory.lastBuildHtml || tab.html;
+  tab.buildHistory = sessionMemory.buildHistory ? sessionMemory.buildHistory.slice() : tab.buildHistory;
+}
+
+// Rename tab on double-click (called inline)
+function renameTab(tabId) {
+  var tab = projectTabs.find(function(t) { return t.id === tabId; });
+  if (!tab) return;
+  var name = prompt('Rename project:', tab.name);
+  if (name && name.trim()) { tab.name = name.trim(); renderTabs(); }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// LIVE PROJECT MEMORY LOG
+// Updates the memory section with real context
+// ═══════════════════════════════════════════════════════════════
+function updateMemoryLog() {
+  var el = document.getElementById('memory-list');
+  if (!el) return;
+  var entries = [];
+  if (sessionMemory.userName) entries.push('User: <strong style="color:rgba(255,215,0,0.5)">' + sessionMemory.userName + '</strong>');
+  if (sessionMemory.projectType) entries.push('Last project type: ' + sessionMemory.projectType.replace('_',' '));
+  if (sessionMemory.buildHistory && sessionMemory.buildHistory.length > 0) entries.push(sessionMemory.buildHistory.length + ' build' + (sessionMemory.buildHistory.length > 1 ? 's' : '') + ' this session');
+  if (sessionMemory.lastRating) entries.push('Last rating: ' + '★'.repeat(sessionMemory.lastRating) + '☆'.repeat(5 - sessionMemory.lastRating));
+  if (sessionMemory.conversationContext && sessionMemory.conversationContext.length > 0) entries.push(sessionMemory.conversationContext.length + ' messages in context');
+  if (entries.length === 0) entries.push('Listening for context...');
+  el.innerHTML = entries.map(function(e) { return '<div class="me">' + e + '</div>'; }).join('');
+}
+
+// Initialize tabs and memory on load integration
+var _origWindowOnload = window.onload;
+window.onload = function() {
+  if (_origWindowOnload) _origWindowOnload();
+};
+
+// Hook into existing window.onload flow
+document.addEventListener('DOMContentLoaded', function() {
+  initTabs();
+});
 </script>
 </body>
 </html>
