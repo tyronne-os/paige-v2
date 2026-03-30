@@ -160,7 +160,7 @@ html,body{height:100vh;overflow:hidden;background:#0a0a0a;font-family:'Inter',sa
   </div>
   <div style="flex:1;text-align:center">
     <span style="font-family:'Playfair Display',serif;font-size:15px;font-weight:600;letter-spacing:3px">PAIGE</span>
-    <span style="font-size:9px;color:rgba(255,255,255,0.3);margin-left:8px;letter-spacing:1px">Autonomous Agent for Project Building</span>
+    <span id="hdr-subtitle" style="font-size:9px;color:rgba(255,255,255,0.3);margin-left:8px;letter-spacing:1px">Autonomous Agent for Project Building</span>
   </div>
   <div style="display:flex;gap:10px;align-items:center;color:rgba(255,215,0,0.3);font-size:13px">
     <span style="cursor:pointer">&#128247;</span>
@@ -507,20 +507,33 @@ function loadSession() {
       }
     }
   } catch(e) { console.warn('[PAIGE] Session load failed:', e); }
-  return { userName: null, projectType: null, projectTitle: null, projectSummary: null, buildHistory: [], conversationContext: [], lastBuildHtml: null, lastRating: null, designDNA: null };
+  return defaultSession();
 }
 
+var _saveTimeout = null;
+var _lastSavedUser = null;
+
 function saveSession() {
+  if (_saveTimeout) clearTimeout(_saveTimeout);
+  _saveTimeout = setTimeout(_saveSessionNow, 400);
+}
+
+function saveSessionNow() { if (_saveTimeout) clearTimeout(_saveTimeout); _saveSessionNow(); }
+
+function _saveSessionNow() {
+  _saveTimeout = null;
   try {
     var key = getStorageKey(sessionMemory.userName);
     localStorage.setItem(key, JSON.stringify(sessionMemory));
     if (sessionMemory.userName) {
       localStorage.setItem(ACTIVE_USER_KEY, sessionMemory.userName);
-      // Keep a user index for listing all saved sessions
-      var users = JSON.parse(localStorage.getItem('paige_user_index') || '[]');
-      if (users.indexOf(sessionMemory.userName) === -1) {
-        users.push(sessionMemory.userName);
-        localStorage.setItem('paige_user_index', JSON.stringify(users));
+      if (_lastSavedUser !== sessionMemory.userName) {
+        _lastSavedUser = sessionMemory.userName;
+        var users = JSON.parse(localStorage.getItem('paige_user_index') || '[]');
+        if (users.indexOf(sessionMemory.userName) === -1) {
+          users.push(sessionMemory.userName);
+          localStorage.setItem('paige_user_index', JSON.stringify(users));
+        }
       }
     }
   } catch(e) { console.warn('[PAIGE] Session save failed:', e); }
@@ -544,14 +557,14 @@ function updateSessionMemory(role, text) {
   if (role === 'You' && !sessionMemory.userName) {
     var nameMatch = text.match(/(?:my name is|i'm|i am|call me|it's|it is)\s+(\w+)/i);
     if (nameMatch) {
-      sessionMemory.userName = nameMatch[1].charAt(0).toUpperCase() + nameMatch[1].slice(1);
+      sessionMemory.userName = capitalizeName(nameMatch[1]);
       console.log('[PAIGE] User name captured:', sessionMemory.userName);
       updateProjectTitle();
     }
     // Also catch single-word name responses (after PAIGE asks "what's your name")
     var lastPaige = sessionMemory.conversationContext.filter(function(c) { return c.role === 'PAIGE'; }).slice(-1)[0];
     if (lastPaige && /name/i.test(lastPaige.text) && /^\w+$/.test(text.trim()) && text.trim().length < 20) {
-      sessionMemory.userName = text.trim().charAt(0).toUpperCase() + text.trim().slice(1).toLowerCase();
+      sessionMemory.userName = capitalizeName(text.trim());
       console.log('[PAIGE] User name from single word:', sessionMemory.userName);
       updateProjectTitle();
     }
@@ -559,7 +572,6 @@ function updateSessionMemory(role, text) {
 
   // Track project type + auto-generate project title
   if (role === 'You') {
-    var ut = text.toLowerCase();
     var typeMap = [
       [/law\s*(firm|office|website|page|site)/i, 'law_website', 'LAW-WEBSITE'],
       [/landing page/i, 'landing_page', 'LANDING-PAGE'],
@@ -626,7 +638,7 @@ function updateProjectTitle() {
     }
   }
   // Update header subtitle
-  var subtitle = document.querySelector('.hdr span[style*="letter-spacing:1px"]');
+  var subtitle = document.getElementById('hdr-subtitle');
   if (subtitle && sessionMemory.projectTitle) {
     subtitle.textContent = sessionMemory.projectTitle;
   }
@@ -720,7 +732,7 @@ function submitWelcomeName() {
   var inp = document.getElementById('welcome-name-input');
   var name = inp ? inp.value.trim() : '';
   if (name) {
-    sessionMemory.userName = name.charAt(0).toUpperCase() + name.slice(1).toLowerCase();
+    sessionMemory.userName = capitalizeName(name);
     saveSession();
   }
   dismissWelcome();
@@ -737,29 +749,37 @@ function dismissWelcome() {
   setTimeout(function() { activateVoice(); }, 500);
 }
 
+function defaultSession() {
+  return { userName: null, projectType: null, projectTitle: null, projectSummary: null, buildHistory: [], conversationContext: [], lastBuildHtml: null, lastRating: null, designDNA: null };
+}
+
 function clearSession() {
-  sessionMemory = { userName: null, projectType: null, projectTitle: null, buildHistory: [], conversationContext: [], lastBuildHtml: null };
-  localStorage.removeItem(STORAGE_KEY);
+  var key = getStorageKey(sessionMemory.userName);
+  sessionMemory = defaultSession();
+  localStorage.removeItem(key);
+  localStorage.removeItem(ACTIVE_USER_KEY);
   console.log('[PAIGE] Session cleared');
 }
 
 function setStatus(msg) { document.getElementById('status').textContent = msg; }
 
-function addTx(speaker, text) {
-  if (!text) return;
-  var content = typeof text === 'string' ? text : JSON.stringify(text);
-  updateSessionMemory(speaker, content);
-  updateMemoryLog();
-  var div = document.createElement('div');
-  div.className = 'te ' + (speaker === 'PAIGE' ? 'p' : 'u');
-  div.innerHTML = '<span class="sp" style="color:' + (speaker === 'PAIGE' ? 'rgba(180,130,255,0.6)' : 'rgba(255,215,0,0.5)') + '">' + speaker + '</span>' + content;
-  var tx = document.getElementById('tx');
-  tx.appendChild(div);
-  tx.scrollTop = tx.scrollHeight;
+// ── SHARED HELPERS ──────────────────────────────────────────
+function capitalizeName(s) { return s.charAt(0).toUpperCase() + s.slice(1).toLowerCase(); }
+
+function iframeSrcdoc(html) {
+  return '<iframe style="width:100%;height:100%;border:none;background:#000" srcdoc="' + html.replace(/"/g, '&quot;') + '"></iframe>';
 }
 
-// Add transcript entry WITHOUT saving to session (for restoring history)
-function addTxSilent(speaker, text) {
+function clearStages() { document.querySelectorAll('.stage').forEach(function(s) { s.classList.remove('active'); }); }
+
+function wsSay(text) {
+  if (ws && ws.readyState === 1) {
+    ws.send(JSON.stringify({ type: 'conversation.item.create', item: { type: 'message', role: 'user', content: text } }));
+    ws.send(JSON.stringify({ type: 'response.create' }));
+  }
+}
+
+function renderTxEntry(speaker, text) {
   if (!text) return;
   var div = document.createElement('div');
   div.className = 'te ' + (speaker === 'PAIGE' ? 'p' : 'u');
@@ -768,6 +788,16 @@ function addTxSilent(speaker, text) {
   tx.appendChild(div);
   tx.scrollTop = tx.scrollHeight;
 }
+
+function addTx(speaker, text) {
+  if (!text) return;
+  var content = typeof text === 'string' ? text : JSON.stringify(text);
+  updateSessionMemory(speaker, content);
+  updateMemoryLog();
+  renderTxEntry(speaker, content);
+}
+
+function addTxSilent(speaker, text) { renderTxEntry(speaker, text); }
 
 window.onload = function() {
   // Restore previous session from localStorage
@@ -782,9 +812,9 @@ window.onload = function() {
 
     // Restore last build on canvas if available
     if (sessionMemory.lastBuildHtml) {
-      document.querySelectorAll('.stage').forEach(function(s) { s.classList.remove('active'); });
+      clearStages();
       document.getElementById('stage-preview').classList.add('active');
-      document.getElementById('stage-preview').innerHTML = '<iframe style="width:100%;height:100%;border:none;background:#000" srcdoc="' + sessionMemory.lastBuildHtml.replace(/"/g, '&quot;') + '"></iframe>';
+      document.getElementById('stage-preview').innerHTML = iframeSrcdoc(sessionMemory.lastBuildHtml);
     }
 
     // Show welcome back message
@@ -904,8 +934,7 @@ async function startVoice() {
         } else {
           greetPrompt = 'First contact. Introduce yourself as PAIGE — you build anything they can dream up, live, right here. Be warm, fun, electric. Ask for their name like you genuinely cannot wait to know. Under 4 sentences. No robotic phrasing. No mentioning AI or models.';
         }
-        ws.send(JSON.stringify({ type: 'conversation.item.create', item: { type: 'message', role: 'user', content: greetPrompt } }));
-        ws.send(JSON.stringify({ type: 'response.create' }));
+        wsSay(greetPrompt);
       }, 900);
     };
 
@@ -943,10 +972,7 @@ async function startVoice() {
         var shouldEnd = endPhrases.some(function(p) { return ut.indexOf(p) > -1; });
         if (shouldEnd) {
           addTx('PAIGE', 'Got it! Session ended. Talk to you soon.');
-          if (ws && ws.readyState === 1) {
-            ws.send(JSON.stringify({ type: 'conversation.item.create', item: { type: 'message', role: 'user', content: 'Say: Got it! Session ended. Talk to you soon.' } }));
-            ws.send(JSON.stringify({ type: 'response.create' }));
-          }
+          wsSay('Say: Got it! Session ended. Talk to you soon.');
           setTimeout(function() { stopVoice(); }, 1600);
           return;
         }
@@ -1053,7 +1079,7 @@ var buildBusy = false;
 
 function advanceBuildStage(projectHTML) {
   currentStage++;
-  document.querySelectorAll('.stage').forEach(function(s) { s.classList.remove('active'); });
+  clearStages();
 
   if (currentStage === 1 || currentStage === 3) {
     document.getElementById('stage-orb').classList.add('active');
@@ -1090,7 +1116,7 @@ function updateOrbText(isFinal) {
 
 function resetCanvas() {
   currentStage = 0;
-  document.querySelectorAll('.stage').forEach(function(s) { s.classList.remove('active'); });
+  clearStages();
   document.getElementById('stage-blank').classList.add('active');
 }
 
@@ -1102,7 +1128,7 @@ async function claudeBuild(utterance) {
   console.log('[PAIGE] claudeBuild called with:', utterance);
 
   // Show instant "building" state on canvas
-  document.querySelectorAll('.stage').forEach(function(s) { s.classList.remove('active'); });
+  clearStages();
   document.getElementById('stage-preview').classList.add('active');
   document.getElementById('stage-preview').innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#c9a84c;font-size:20px;text-align:center"><div><div style="font-size:40px;margin-bottom:16px;animation:energyPulse 1.5s infinite">&#9881;</div>Building your project in real time...</div></div>';
 
@@ -1141,7 +1167,7 @@ async function claudeBuild(utterance) {
 
     // INSTANT RENDER — show on canvas immediately + save to session
     var html = resp.html || raw || '<div style="color:#c9a84c;padding:40px;text-align:center">Project rendered</div>';
-    document.getElementById('stage-preview').innerHTML = '<iframe style="width:100%;height:100%;border:none;background:#000" srcdoc="' + html.replace(/"/g, '&quot;') + '"></iframe>';
+    document.getElementById('stage-preview').innerHTML = iframeSrcdoc(html);
     sessionMemory.lastBuildHtml = html;
     sessionMemory.buildHistory.push({ time: Date.now(), type: sessionMemory.projectType || utterance.split(' ').slice(0,3).join(' '), html: html.slice(0, 8000) });
     if (sessionMemory.buildHistory.length > 10) sessionMemory.buildHistory.shift();
@@ -1167,8 +1193,7 @@ async function claudeBuild(utterance) {
 
     // PAIGE speaks the result through Grok voice
     if (resp.speak && ws && ws.readyState === 1) {
-      ws.send(JSON.stringify({ type: 'conversation.item.create', item: { type: 'message', role: 'user', content: 'Say exactly this: ' + resp.speak } }));
-      ws.send(JSON.stringify({ type: 'response.create' }));
+      wsSay('Say exactly this: ' + resp.speak);
     }
 
   } catch(e) {
@@ -1185,10 +1210,7 @@ function endSession() {
   var name = sessionMemory.userName ? ', ' + sessionMemory.userName : '';
   addTx('PAIGE', 'Session ended' + name + '. It was great building with you — come back anytime.');
 
-  if (ws && ws.readyState === 1) {
-    ws.send(JSON.stringify({ type: 'conversation.item.create', item: { type: 'message', role: 'user', content: 'Say goodbye warmly to the user' + (sessionMemory.userName ? ' named ' + sessionMemory.userName : '') + ' and tell them you cannot wait to build together again.' } }));
-    ws.send(JSON.stringify({ type: 'response.create' }));
-  }
+  wsSay('Say goodbye warmly to the user' + (sessionMemory.userName ? ' named ' + sessionMemory.userName : '') + ' and tell them you cannot wait to build together again.');
 
   setTimeout(function() {
     stopVoice();
@@ -1406,9 +1428,9 @@ function refreshVersionList() {
 function restoreVersion(idx) {
   var v = sessionMemory.buildHistory[idx];
   if (!v || !v.html) return;
-  document.querySelectorAll('.stage').forEach(function(s) { s.classList.remove('active'); });
+  clearStages();
   document.getElementById('stage-preview').classList.add('active');
-  document.getElementById('stage-preview').innerHTML = '<iframe style="width:100%;height:100%;border:none;background:#000" srcdoc="' + v.html.replace(/"/g, '&quot;') + '"></iframe>';
+  document.getElementById('stage-preview').innerHTML = iframeSrcdoc(v.html);
   document.querySelectorAll('#version-list .ve').forEach(function(el, i) {
     el.classList.toggle('active-ver', i === (sessionMemory.buildHistory.length - 1 - idx));
   });
@@ -1494,7 +1516,7 @@ function showFeedbackBar() {
   bar.innerHTML = [
     '<span style="font-size:9px;color:rgba(255,215,0,0.35);letter-spacing:1px;text-transform:uppercase">Rate</span>',
     [1,2,3,4,5].map(function(n) {
-      return '<span class="fb-star" id="fb-star-' + n + '" onclick="rateBuild(' + n + ')">' + (n <= 3 ? '☆' : '☆') + '</span>';
+      return '<span class="fb-star" id="fb-star-' + n + '" onclick="rateBuild(' + n + ')">☆</span>';
     }).join(''),
     '<div class="fb-sep"></div>',
     '<button class="fb-btn" onclick="removeFeedbackBar()">✓ Perfect</button>',
@@ -1568,11 +1590,14 @@ function openDiffViewer(idx) {
   document.getElementById('diff-title').textContent = (v.type || 'build') + ' — ' + new Date(v.time).toLocaleString();
   document.getElementById('diff-viewer').classList.add('open');
 
-  // Drag-to-resize divider
+  // Drag-to-resize divider (use AbortController to clean up on close)
+  if (window._diffAC) window._diffAC.abort();
+  window._diffAC = new AbortController();
+  var sig = { signal: window._diffAC.signal };
   var divider = document.getElementById('diff-divider');
   var body = document.getElementById('diff-body');
   var dragging = false;
-  divider.addEventListener('mousedown', function(e) { dragging = true; e.preventDefault(); });
+  divider.addEventListener('mousedown', function(e) { dragging = true; e.preventDefault(); }, sig);
   document.addEventListener('mousemove', function(e) {
     if (!dragging) return;
     var rect = body.getBoundingClientRect();
@@ -1580,12 +1605,13 @@ function openDiffViewer(idx) {
     document.getElementById('diff-current').style.flex = 'none';
     document.getElementById('diff-current').style.width = pct + '%';
     document.getElementById('diff-selected').style.flex = '1';
-  });
-  document.addEventListener('mouseup', function() { dragging = false; });
+  }, sig);
+  document.addEventListener('mouseup', function() { dragging = false; }, sig);
 }
 
 function closeDiffViewer() {
   document.getElementById('diff-viewer').classList.remove('open');
+  if (window._diffAC) { window._diffAC.abort(); window._diffAC = null; }
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -1770,9 +1796,9 @@ function switchTab(tabId) {
   // Restore this tab's canvas
   var preview = document.getElementById('stage-preview');
   if (tab.html) {
-    document.querySelectorAll('.stage').forEach(function(s) { s.classList.remove('active'); });
+    clearStages();
     preview.classList.add('active');
-    preview.innerHTML = '<iframe style="width:100%;height:100%;border:none;background:#000" srcdoc="' + tab.html.replace(/"/g,'&quot;') + '"></iframe>';
+    preview.innerHTML = iframeSrcdoc(tab.html);
     setDevicePreview(currentDevice);
     extractDesignDNA(tab.html);
   } else {
