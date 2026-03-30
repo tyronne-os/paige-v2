@@ -637,15 +637,8 @@ function dismissWelcome() {
     overlay.style.transition = 'opacity 0.4s';
     setTimeout(function() { overlay.remove(); }, 400);
   }
-  if (sessionMemory.userName) {
-    setTimeout(function() {
-      addTxSilent('PAIGE', 'Hi ' + sessionMemory.userName + '! I\'m so excited you\'re here. Tap the mic and tell me what to build — or just click one of the quick-builds below.');
-    }, 200);
-  } else {
-    setTimeout(function() {
-      addTxSilent('PAIGE', 'Hey! I\'m PAIGE. Tap the mic and let\'s build something incredible together.');
-    }, 200);
-  }
+  // Now activate voice — PAIGE will greet them by name via Grok Aria
+  setTimeout(function() { activateVoice(); }, 500);
 }
 
 function clearSession() {
@@ -704,22 +697,46 @@ window.onload = function() {
     }
   }
 
-  setStatus('Click to activate PAIGE');
   checkGoogleAuth();
   refreshVersionList();
-  showWelcomeFlow();
+  initTabs();
+  updateMemoryLog();
 
-  // Try auto mic auth immediately
+  // Check if user just came back from Google OAuth
+  var justAuthed = window.location.search.indexOf('auth=google') > -1;
+  if (justAuthed) {
+    // Clean up URL
+    window.history.replaceState({}, '', '/');
+    // Give checkGoogleAuth a moment to populate userName
+    setTimeout(function() {
+      setStatus('Signed in — connecting PAIGE...');
+      activateVoice();
+    }, 600);
+    return;
+  }
+
+  // Check if returning user (has name or Google session)
+  var hasUser = sessionMemory.userName || localStorage.getItem('paige_google_user');
+  if (hasUser) {
+    setStatus('Welcome back — connecting PAIGE...');
+    activateVoice();
+  } else {
+    // First-time visitor — show welcome overlay, voice starts after
+    setStatus('Welcome to PAIGE');
+    showWelcomeFlow();
+  }
+};
+
+// Activate voice — tries mic, falls back to overlay
+function activateVoice() {
   navigator.mediaDevices.getUserMedia({ audio: true }).then(function(stream) {
-    // Mic already authorized — stop test stream and auto-start
     stream.getTracks().forEach(function(t) { t.stop(); });
     setStatus('Mic authorized — connecting...');
-    setTimeout(function() { startVoice(); }, 800);
+    setTimeout(function() { startVoice(); }, 500);
   }).catch(function() {
-    // Mic not yet authorized — show activation overlay
     showMicAuthOverlay();
   });
-};
+}
 
 function showMicAuthOverlay() {
   var overlay = document.createElement('div');
@@ -1730,16 +1747,7 @@ function updateMemoryLog() {
   el.innerHTML = entries.map(function(e) { return '<div class="me">' + e + '</div>'; }).join('');
 }
 
-// Initialize tabs and memory on load integration
-var _origWindowOnload = window.onload;
-window.onload = function() {
-  if (_origWindowOnload) _origWindowOnload();
-};
-
-// Hook into existing window.onload flow
-document.addEventListener('DOMContentLoaded', function() {
-  initTabs();
-});
+// Tabs + memory initialized inside main window.onload above
 </script>
 </body>
 </html>
